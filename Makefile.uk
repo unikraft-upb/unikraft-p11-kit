@@ -1,0 +1,310 @@
+#  libp11kit Makefile.uk
+#
+#  Authors: Cezar Craciunoiu <cezar.craciunoiu@gmail.com>
+#
+#  Copyright (c) 2020, Politehnica University of Bucharest. All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  3. Neither the name of the copyright holder nor the names of its
+#     contributors may be used to endorse or promote products derived from
+#     this software without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+
+################################################################################
+# Library registration
+################################################################################
+$(eval $(call addlib_s,libp11kit,$(CONFIG_LIBP11KIT)))
+
+################################################################################
+# Sources
+################################################################################
+LIBP11KIT_VER=0.23.21
+LIBP11KIT_URL=https://github.com/p11-glue/p11-kit/archive/$(LIBP11KIT_VER).zip
+$(eval $(call fetch,libp11kit,$(LIBP11KIT_URL)))
+LIBP11KIT_PATCHDIR=$(LIBP11KIT_BASE)/patches
+$(eval $(call patch,libp11kit,$(LIBP11KIT_PATCHDIR),p11-kit-$(LIBP11KIT_VER)))
+
+################################################################################
+# Helpers
+################################################################################
+LIBP11KIT_PATH=$(LIBP11KIT_ORIGIN)/p11-kit-$(LIBP11KIT_VER)
+LIBP11KIT_BUILD_PATH=$(LIBP11KIT_PATH)/_build
+
+################################################################################
+# Library includes
+################################################################################
+# Include helpers
+LIBP11KIT_MAIN_INCLUDE = -I$(LIBP11KIT_BUILD_PATH)/p11-kit/077403d@@p11-kit@sha
+LIBP11KIT_BASE_INCLUDE = -I$(LIBP11KIT_BUILD_PATH)
+LIBP11KIT_ROOT_BASE_INCLUDE = -I../$(LIBP11KIT_BUILD_PATH)
+LIBP11KIT_COMMON_INCLUDE = -I$(LIBP11KIT_BUILD_PATH)/common
+LIBP11KIT_ROOT_COMMON_INCLUDE = -I$(LIBP11KIT_BUILD_PATH)/../common
+LIBP11KIT_GLUE_INCLUDE = -I$(LIBP11KIT_BASE)
+
+LIBP11KIT_COMM_INCLUDES-y += -I$(LIBP11KIT_PATH)
+CXXINCLUDES-$(CONFIG_LIBP11KIT) += -I$(LIBP11KIT_PATH)
+CINCLUDES-$(CONFIG_LIBP11KIT) += -I$(LIBP11KIT_PATH)
+
+LIBP11KIT_CINCLUDES += $(LIBP11KIT_MAIN_INCLUDE) $(LIBP11KIT_BASE_INCLUDE) \
+		$(LIBP11KIT_ROOT_BASE_INCLUDE) $(LIBP11KIT_COMMON_INCLUDE) \
+		$(LIBP11KIT_ROOT_COMMON_INCLUDE) $(LIBP11KIT_GLUE_INCLUDE)
+
+LIBP11KIT_CXXINCLUDES += $(LIBP11KIT_MAIN_INCLUDE) $(LIBP11KIT_BASE_INCLUDE) \
+		$(LIBP11KIT_ROOT_BASE_INCLUDE) $(LIBP11KIT_COMMON_INCLUDE) \
+		$(LIBP11KIT_ROOT_COMMON_INCLUDE) $(LIBP11KIT_GLUE_INCLUDE)
+
+################################################################################
+# Global flags
+################################################################################
+LIBP11KIT_SUPPRESS_FLAGS += -Wno-unused-parameter \
+	-Wno-unused-variable -Wno-unused-value -Wno-unused-function \
+	-Wno-missing-field-initializers -Wno-implicit-fallthrough \
+	-Wno-sign-compare -Wno-old-style-declaration -Wno-clobbered \
+	-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
+LIBP11KIT_BUILD_FLAGS += -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -g \
+	-D_GNU_SOURCE -DP11_KIT_FUTURE_UNSTABLE_API -fPIC
+
+# Default paths, if other paths are wanted, they need to be changed here too
+ifndef CONFIG_BUILD_TESTS
+LIBP11KIT_DEFINE_FLAGS += \
+'-DP11_SYSTEM_CONFIG_FILE="/usr/local/etc/pkcs11/pkcs11.conf"' \
+'-DP11_SYSTEM_CONFIG_MODULES="/usr/local/etc/pkcs11/modules"' \
+'-DP11_PACKAGE_CONFIG_MODULES="/usr/local/share/p11-kit/modules"' \
+'-DP11_MODULE_PATH="/usr/local/lib/x86_64-linux-gnu/pkcs11"' \
+'-DP11_USER_CONFIG_FILE=".config/pkcs11/pkcs11.conf"' \
+'-DP11_USER_CONFIG_MODULES=".config/pkcs11/modules"' \
+'-DSRCDIR="p11-kit"' \
+'-DBUILDDIR="p11-kit/_build"'
+endif
+
+ifdef CONFIG_BUILD_TESTS
+LIBP11KIT_DEFINE_FLAGS += \
+'-DP11_SYSTEM_CONFIG_FILE="p11-kit/p11-kit/fixtures/system-pkcs11.conf"' \
+'-DP11_SYSTEM_CONFIG_MODULES="p11-kit/p11-kit/fixtures/system-modules"' \
+'-DP11_PACKAGE_CONFIG_MODULES="p11-kit/p11-kit/fixtures/package-modules"' \
+'-DP11_MODULE_PATH="p11-kit/_build/p11-kit"' \
+'-DP11_USER_CONFIG_FILE="p11-kit/p11-kit/fixtures/user-pkcs11.conf"' \
+'-DP11_USER_CONFIG_MODULES="p11-kit/p11-kit/fixtures/user-modules"' \
+'-DSRCDIR="p11-kit"' \
+'-DBUILDDIR="p11-kit/_build"'
+endif
+
+LIBP11KIT_CFLAGS-y += $(LIBP11KIT_SUPPRESS_FLAGS) $(LIBP11KIT_BUILD_FLAGS) \
+	$(LIBP11KIT_DEFINE_FLAGS)
+LIBP11KIT_CXXFLAGS-y += $(LIBP11KIT_SUPPRESS_FLAGS) $(LIBP11KIT_BUILD_FLAGS) \
+			$(LIBP11KIT_DEFINE_FLAGS)
+
+################################################################################
+# Library sources
+################################################################################
+LIBP11KIT_SRCS-y += $(LIBP11KIT_BASE)/glue.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/log.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/filter.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/rpc-message.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/rpc-client.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/virtual.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/conf.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/iter.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/messages.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/pin.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/proxy.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/proxy-init.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/rpc-server.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/uri.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/util.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/rpc-transport.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/modules.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/argv.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/attrs.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/debug.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/hash.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/message.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/runtime.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/array.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/buffer.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/constants.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/dict.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/lexer.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/url.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/path.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/library.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/vsock.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/compat.c
+
+# Test sources
+ifdef CONFIG_BUILD_TESTS
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/mock.c
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test.c
+endif
+ifdef CONFIG_TESTS_ARGV
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-argv.c
+LIBP11KIT_TEST-ARGV_FLAGS += -Dmain=test_argv_main
+endif
+ifdef CONFIG_TESTS_ARRAY
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-array.c
+LIBP11KIT_TEST-ARRAY_FLAGS += -Dmain=test_array_main
+endif
+ifdef CONFIG_TESTS_ATTRS
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-attrs.c
+LIBP11KIT_TEST-ATTRS_FLAGS += -Dmain=test_attrs_main
+endif
+ifdef CONFIG_TESTS_BUFFER
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-buffer.c
+LIBP11KIT_TEST-BUFFER_FLAGS += -Dmain=test_buffer_main
+endif
+ifdef CONFIG_TESTS_COMPAT
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-compat.c
+LIBP11KIT_TEST-COMPAT_FLAGS += -Dmain=test_compat_main
+endif
+ifdef CONFIG_TESTS_CONSTANTS
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-constants.c
+LIBP11KIT_TEST-CONSTANTS_FLAGS += -Dmain=test_constants_main
+endif
+ifdef CONFIG_TESTS_DICT
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-dict.c
+LIBP11KIT_TEST-DICT_FLAGS += -Dmain=test_dict_main
+endif
+ifdef CONFIG_TESTS_HASH
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-hash.c
+LIBP11KIT_TEST-HASH_FLAGS += -Dmain=test_hash_main
+endif
+ifdef CONFIG_TESTS_LEXER
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-lexer.c
+LIBP11KIT_TEST-LEXER_FLAGS += -Dmain=test_lexer_main
+endif
+ifdef CONFIG_TESTS_MESSAGE
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-message.c
+LIBP11KIT_TEST-MESSAGE_FLAGS += -Dmain=test_message_main
+endif
+ifdef CONFIG_TESTS_PATH
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-path.c
+LIBP11KIT_TEST-PATH_FLAGS += -Dmain=test_path_main
+endif
+ifdef CONFIG_TESTS_RUNTIME
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-runtime.c
+LIBP11KIT_TEST-RUNTIME_FLAGS += -Dmain=test_runtime_main
+endif
+ifdef CONFIG_TESTS_TESTS
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-tests.c
+LIBP11KIT_TEST-TESTS_FLAGS += -Dmain=test_tests_main
+endif
+ifdef CONFIG_TESTS_URL
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/common/test-url.c
+LIBP11KIT_TEST-URL_FLAGS += -Dmain=test_url_main
+endif
+ifdef CONFIG_TESTS_CONF
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-conf.c
+LIBP11KIT_TEST-CONF_FLAGS += -Dmain=test_conf_main
+endif
+ifdef CONFIG_TESTS_DEPRECATED
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-deprecated.c
+LIBP11KIT_TEST-DEPRECATED_FLAGS += -Dmain=test_deprecated_main
+endif
+ifdef CONFIG_TESTS_FILTER
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-filter.c
+LIBP11KIT_TEST-FILTER_FLAGS += -Dmain=test_filter_main
+endif
+ifdef CONFIG_TESTS_INIT
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-init.c
+LIBP11KIT_TEST-INIT_FLAGS += -Dmain=test_init_main
+endif
+ifdef CONFIG_TESTS_ITER
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-iter.c
+LIBP11KIT_TEST-ITER_FLAGS += -Dmain=test_iter_main
+endif
+ifdef CONFIG_TESTS_LOG
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-log.c
+LIBP11KIT_TEST-LOG_FLAGS += -Dmain=test_log_main
+endif
+ifdef CONFIG_TESTS_MANAGED
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-managed.c
+LIBP11KIT_TEST-MANAGED_FLAGS += -Dmain=test_managed_main
+endif
+ifdef CONFIG_TESTS_MODULES
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-modules.c
+LIBP11KIT_TEST-MODULES_FLAGS += -Dmain=test_modules_main
+endif
+ifdef CONFIG_TESTS_PIN
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-pin.c
+LIBP11KIT_TEST-PIN_FLAGS += -Dmain=test_pin_main
+endif
+ifdef CONFIG_TESTS_PROGNAME
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-progname.c
+LIBP11KIT_TEST-PROGNAME_FLAGS += -Dmain=test_progname_main
+endif
+ifdef CONFIG_TESTS_PROXY
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-proxy.c
+LIBP11KIT_TEST-PROXY_FLAGS += -Dmain=test_proxy_main
+endif
+ifdef CONFIG_TESTS_RPC
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-rpc.c
+LIBP11KIT_TEST-RPC_FLAGS += -Dmain=test_rpc_main
+endif
+ifdef CONFIG_TESTS_SERVER
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-server.c
+LIBP11KIT_TEST-SERVER_FLAGS += -Dmain=test_server_main
+endif
+ifdef CONFIG_TESTS_TRANSPORT
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-transport.c
+LIBP11KIT_TEST-TRANSPORT_FLAGS += -Dmain=test_transport_main
+endif
+ifdef CONFIG_TESTS_URI
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-uri.c
+LIBP11KIT_TEST-URI_FLAGS += -Dmain=test_uri_main
+endif
+ifdef CONFIG_TESTS_UTIL
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-util.c
+LIBP11KIT_TEST-UTIL_FLAGS += -Dmain=test_util_main
+endif
+ifdef CONFIG_TESTS_VIRTUAL
+LIBP11KIT_SRCS-y += $(LIBP11KIT_PATH)/p11-kit/test-virtual.c
+LIBP11KIT_TEST-VIRTUAL_FLAGS += -Dmain=test_virtual_main
+endif
+
+# Remove an already implemented function from compat.c
+$(LIBP11KIT_PATH)/common/remove_function: $(LIBP11KIT_BUILD)/.origin
+	$(call verbose_cmd,CONFIG,libp11kit: $(notdir $@), \
+		cd $(LIBP11KIT_PATH)/common && \
+		sed -i 's/#if 1/#if 0/g' compat.c && \
+		touch remove_function)
+
+# Create the default file structure and copy the library to it
+$(LIBP11KIT_PATH)/create_file_system: $(LIBP11KIT_BUILD)/.origin
+	$(call verbose_cmd,CONFIG,libp11kit: $(notdir $@), \
+		cd $(LIBP11KIT_PATH)/../../../../ && \
+		mkdir fs0 && cd fs0 &&  mkdir usr && cd usr && mkdir local && \
+		cd local && mkdir etc && cd etc && mkdir pkcs11 && cd pkcs11 \
+		&& echo "user-config: merge" > pkcs11.conf.example && cd ../.. \
+		&& mkdir share && cd share && mkdir p11-kit && cd p11-kit && \
+		mkdir modules && cd ../.. && mkdir lib && cd lib && \
+		mkdir x86_6-linux-gnu && cd x86_6-linux-gnu && mkdir pkcs11 && \
+		cd ../../../.. && mkdir .config && cd .config && \
+		mkdir pkcs11 && cd .. && cp -r $(LIBP11KIT_PATH) p11-kit && \
+		touch $(LIBP11KIT_PATH)/create_file_system)
+
+LBP11KIT_PREPARED_DEPS = $(LIBP11KIT_PATH)/common/remove_function \
+			$(LIBP11KIT_PATH)/create_file_system
+
+$(LIBP11KIT_BUILD)/.prepared: $(LBP11KIT_PREPARED_DEPS)
+
+UK_PREPARE += $(LIBP11KIT_BUILD)/.prepared

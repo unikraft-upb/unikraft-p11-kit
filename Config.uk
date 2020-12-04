@@ -1,0 +1,186 @@
+menuconfig LIBP11KIT
+	bool "libp11-kit - load and enumerate PKCS#11 modules"
+	default n
+	select LIBNOLIBC if !HAVE_LIBC
+	select LIBUKALLOC
+	select LIBPOSIX_LIBDL
+	select LIBUKMMAP
+	select LIBUKSP
+	select LIBUKBOOT
+	select LIBUKBUS
+	select LIBPOSIX_SYSINFO
+	select LIBUK9P
+	select LIB9PFS
+	select LIBVFSCORE_AUTOMOUNT_ROOTFS
+	select LIBDEVFS
+	select LIBDEVFS_AUTOMOUNT
+	select LIBLWIP
+	select LIBPTHREAD_EMBEDDED
+	select LIBNEWLIBC
+	select PLAT_KVM
+
+if LIBP11KIT
+	choice LIBVFSCORE_ROOTFS
+		default LIBVFSCORE_ROOTFS_9PFS
+	endchoice
+	menuconfig BUILD_TESTS
+		bool "P11-kit test suite"
+		default n
+		if BUILD_TESTS
+			config ALL_TEST_CASES
+				bool "All test cases"
+				default n
+				select TESTS_ARGV
+				select TESTS_ATTRS
+				select TESTS_BUFFER
+				select TESTS_COMPAT
+				select TESTS_CONF
+				select TESTS_CONSTANTS
+				select TESTS_DEPRECATED
+				select TESTS_DICT
+				select TESTS_FILTER
+				select TESTS_HASH
+				select TESTS_INIT
+				select TESTS_ITER
+				select TESTS_LEXER
+				select TESTS_LOG
+				select TESTS_MANAGED
+				select TESTS_MESSAGE
+				select TESTS_MODULES
+				select TESTS_PATH
+				select TESTS_PIN
+				select TESTS_PROGNAME
+				select TESTS_PROXY
+				select TESTS_RPC
+				select TESTS_RUNTIME
+				select TESTS_SERVER
+				select TESTS_TESTS
+				select TESTS_TRANSPORT
+				select TESTS_URI
+				select TESTS_URL
+				select TESTS_UTIL
+				select TESTS_VIRTUAL
+				depends on BUILD_TESTS
+			config TESTS_ARGV
+				bool "Test argv"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_ATTRS
+				bool "Test attr"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_BUFFER
+				bool "Test buffer"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_COMPAT
+				bool "Test compat"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_CONF
+				bool "Test conf"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_CONSTANTS
+				bool "Test constants"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_DEPRECATED
+				bool "Test deprecated"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_DICT
+				bool "Test dict"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_FILTER
+				bool "Test filter"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_HASH
+				bool "Test hash"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_INIT
+				bool "Test init"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_ITER
+				bool "Test iter"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_LEXER
+				bool "Test lexer"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_LOG
+				bool "Test log"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_MANAGED
+				bool "Test managed"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_MESSAGE
+				bool "Test message"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_MODULES
+				bool "Test modules"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_PATH
+				bool "Test path"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_PIN
+				bool "Test pin"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_PROGNAME
+				bool "Test progname"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_PROXY
+				bool "Test proxy"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_RPC
+				bool "Test rpc"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_RUNTIME
+				bool "Test runtime"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_SERVER
+				bool "Test server"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_TESTS
+				bool "Test tests"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_TRANSPORT
+				bool "Test transport"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_URI
+				bool "Test uri"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_URL
+				bool "Test url"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_UTIL
+				bool "Test util"
+				default n
+				depends on BUILD_TESTS
+			config TESTS_VIRTUAL
+				bool "Test virtual"
+				default n
+				depends on BUILD_TESTS
+		endif
+endif
+

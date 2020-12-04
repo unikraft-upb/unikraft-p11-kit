@@ -1,0 +1,47 @@
+From 05b93ce82cf0c07dec1f0df398e8325385f49635 Mon Sep 17 00:00:00 2001
+From: Cezar Craciunoiu <cezar.craciunoiu@gmail.com>
+Date: Fri, 6 Nov 2020 19:17:29 +0200
+Subject: [PATCH 3/5] Use pointer instead of structure for deprecated
+
+Signed-off-by: Cezar Craciunoiu <cezar.craciunoiu@gmail.com>
+---
+ p11-kit/test-deprecated.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/p11-kit/test-deprecated.c b/p11-kit/test-deprecated.c
+index 81d6029..49761e9 100644
+--- a/p11-kit/test-deprecated.c
++++ b/p11-kit/test-deprecated.c
+@@ -384,25 +384,25 @@ test_threaded_initialization (void)
+ 	for (i = 0; i < num_threads; i++) {
+ 		ret = p11_thread_create (&threads[i], initialization_thread, "thread-data");
+ 		assert_num_eq (0, ret);
+-		assert (threads[i] != 0);
++		assert (threads[i].p != 0);
+ 	}
+ 
+ 	for (i = 0; i < num_threads; i++) {
+ 		ret = p11_thread_join (threads[i]);
+ 		assert_num_eq (0, ret);
+-		threads[i] = 0;
++		threads[i].p = 0;
+ 	}
+ 
+ 	for (i = 0; i < num_threads; i++) {
+ 		ret = p11_thread_create (&threads[i], finalization_thread, "thread-data");
+ 		assert_num_eq (0, ret);
+-		assert (threads[i] != 0);
++		assert (threads[i].p != 0);
+ 	}
+ 
+ 	for (i = 0; i < num_threads; i++) {
+ 		ret = p11_thread_join (threads[i]);
+ 		assert_num_eq (0, ret);
+-		threads[i] = 0;
++		threads[i].p = 0;
+ 	}
+ 
+ 	/* C_Initialize should have been called exactly once */
+-- 
+2.20.1
+

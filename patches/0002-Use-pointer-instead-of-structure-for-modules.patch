@@ -1,0 +1,44 @@
+From a0eaefae206f89212d2230e3a9228c5828f86c3c Mon Sep 17 00:00:00 2001
+From: Cezar Craciunoiu <cezar.craciunoiu@gmail.com>
+Date: Fri, 6 Nov 2020 19:17:01 +0200
+Subject: [PATCH 2/5] Use pointer instead of structure for modules
+
+Signed-off-by: Cezar Craciunoiu <cezar.craciunoiu@gmail.com>
+---
+ p11-kit/modules.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/p11-kit/modules.c b/p11-kit/modules.c
+index 22f1740..784df4c 100644
+--- a/p11-kit/modules.c
++++ b/p11-kit/modules.c
+@@ -294,7 +294,7 @@ free_module_unlocked (void *data)
+ 		p11_debug_precond ("module unloaded without C_Finalize having been "
+ 		                   "called for each C_Initialize");
+ 	} else {
+-		assert (mod->initialize_thread == 0);
++		assert (mod->initialize_thread.p == 0);
+ 	}
+ 
+ 	p11_virtual_uninit (&mod->virt);
+@@ -712,7 +712,7 @@ initialize_module_inlock_reentrant (Module *mod, CK_C_INITIALIZE_ARGS *init_args
+ 
+ 	self = p11_thread_id_self ();
+ 
+-	if (mod->initialize_thread == self) {
++	if (mod->initialize_thread.p == self.p) {
+ 		p11_message ("p11-kit initialization called recursively");
+ 		return CKR_FUNCTION_FAILED;
+ 	}
+@@ -766,7 +766,7 @@ initialize_module_inlock_reentrant (Module *mod, CK_C_INITIALIZE_ARGS *init_args
+ 	}
+ 
+ 	mod->ref_count--;
+-	mod->initialize_thread = 0;
++	mod->initialize_thread.p = 0;
+ 	return rv;
+ }
+ 
+-- 
+2.20.1
+
